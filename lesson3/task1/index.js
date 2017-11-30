@@ -10,8 +10,12 @@ readData.on('data', (chunk) => {
 });
 
 readData.on('end', () => {
-    let resultHash = hash.digest('hex');
+    const resultHash = hash.digest('hex');
+
+    writeData.write(resultHash);
+    writeData.end();
+
     console.log(resultHash);
 });
 
-readData.pipe(writeData);
+readData.pipe(writeData, {end: false});
