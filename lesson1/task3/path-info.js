@@ -3,7 +3,7 @@ const conf = { encoding: 'utf8'};
 
 module.exports = (path, callback) => {
     fs.stat(path, (error, stats) => {
-        if (error) return console.error(error);
+        if (error) return callback(error);
         if (stats.isFile()) {
             fs.readFile(path, conf, (err, data) => {
                 callback(err, { path,
