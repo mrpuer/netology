@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font: 13px Helvetica, Arial; }
+      #allchat form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      #allchat form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      #allchat form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages li { padding: 5px 10px; }
+      #messages li:nth-child(odd) { background: #eee; }
+      #loginblock { width: 100%;
+                    height: 100%;
+                    background-color: #000;
+                    padding: 20%;
+                    color: antiquewhite;
+                  }
+      #loginblock input { border: 0; padding: 10px; width: 40%; margin-right: .5%; }
+      #loginblock button {  width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+    </style>
+  </head>
+  <body>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+      $(() => {
+        const socket = io();
+        // логинимся, прячем форму входа и показываем чат
+        $('#loginform').submit(() => {
+          socket.emit('new user', $('#username').val());
+          $('#username').val('');
+          $('#loginblock').hide(300);
+          $('#allchat').show(300);
+          return false;
+        })
+        // показываем уведомление о логине
+        socket.on('join', (data) => {
+          $('#messages').append($('<li>',).html(`<b>${data.username} has joined</b>`));
+        });
+        //показывем новому пользователю сколько юзеров в чате
+        socket.on('join count', (data) => {
+          $('#messages').append($('<li>',).html(`<i><b>${data.count}<b> users in this chat</i>`));
+        });
+        // при отправке сообщения создаем событие
+        $('#chatform').submit(() => {
+          socket.emit('chat message', $('#m').val());
+          $('#m').val('');
+          return false;
+        });
+        //добавляем сообщение при соответсвующем событии
+        socket.on('add message', (data) => {
+          $('#messages').append($('<li>',).html(`<b>${data.username}:</b> ${data.message}`));
+        });
+        //если юзер ушел
+        socket.on('bye', (data) => {
+          if (data.username !== undefined) {
+            $('#messages').append($('<li>').html(`<b>${data.username} is disconnected</b>`));
+            $('#messages').append($('<li>',).html(`<i><b>${data.count}<b> users in this chat</i>`));
+          }
+        });
+      });
+    </script>
+    <div id='loginblock'>
+      <h2>WebChat. Enter nickname and press JOIN</h2>
+      <form id="loginform" action="">
+        <input id="username" /><button>JOIN</button>
+      </form>
+    </div>
+    <div id="allchat" style="display:none;">
+      <ul id="messages"></ul>
+      <form id="chatform" action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
+  </body>
+</html>
